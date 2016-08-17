@@ -153,6 +153,7 @@ if __name__ == '__main__':
     else: #if the file does not exist, we create it first
         log.info("Compute the cell ids, could take a while...")
         all_cells_id = get_covering_cells_id(args.minx, args.miny, args.maxx, args.maxy)
+        pickle.dump(all_cells_id, open("remaining_cells_id_{}.pickle".format(args.db), "wb"))
 
     #shuffle the order of the cell ids so that it's pseudo random access to maximize the coverage
     shuffle(all_cells_id)
