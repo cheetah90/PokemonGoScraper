@@ -22,7 +22,7 @@ import time
 import s2sphere
 
 from threading import Thread, Lock
-from queue import Empty
+import gc
 import pickle
 
 from pgoapi import PGoApi
@@ -77,7 +77,7 @@ def search_overseer_thread(args, new_location_queue, pause_bit, encryption_lib_p
         log.info("Dump the remaining_cells object")
 
 
-        if len(args.remaining_cells) == 0:
+        if search_items_queue.qsize() == 0:
             with parse_lock:
                 log.info("Finished!")
                 return
@@ -96,6 +96,10 @@ def search_worker_thread(args, account, search_items_queue, parse_lock, encrypti
     # The forever loop for the thread
     while True:
         try:
+            #wait a bit before we start
+            time.sleep(5)
+
+            search_counter = 0
             log.debug('Entering search loop')
 
             # Create the API instance this will use
@@ -116,7 +120,6 @@ def search_worker_thread(args, account, search_items_queue, parse_lock, encrypti
                     cell_id_long = search_items_queue.get()
                     with cellid_lock:
                         if cell_id_long in args.remaining_cells:
-                            args.remaining_cells.remove(cell_id_long)
                             break
 
                 current_cell_id = s2sphere.CellId(id_=cell_id_long)
@@ -167,6 +170,10 @@ def search_worker_thread(args, account, search_items_queue, parse_lock, encrypti
                     with parse_lock:
                         try:
                             parse_map(response_dict, cellid_lock, args.remaining_cells)
+                            with cellid_lock:
+                                if cell_id_long in args.remaining_cells:
+                                    args.remaining_cells.remove(cell_id_long)
+                                    break
                             log.debug('Search step completed')
                             # if search queue is empty that means we've finished scrapingm, exist
                             if search_items_queue.qsize() == 0:
@@ -186,6 +193,16 @@ def search_worker_thread(args, account, search_items_queue, parse_lock, encrypti
                     time.sleep(sleep_delay_remaining / 1000)
 
                 loop_start_time += args.scan_delay * 1000
+
+                # need to break out this while loop after 25 searches and re-login to avoid banned
+                if search_counter >= 15:
+                    # break out o the loop
+                    api = ""
+                    gc.collect()
+                    time.sleep(200)
+                    break
+                else:
+                    search_counter += 1
 
         # catch any process exceptions, log them, and continue the thread
         except Exception as e:

@@ -69,6 +69,15 @@ def setup_params():
     config['parse_pokestops'] = not args.no_pokestops
     config['parse_gyms'] = not args.no_gyms
 
+def from_cellid_to_center_location(cell_id):
+    current_cell_id = s2sphere.CellId(id_=cell_id)
+    lat = current_cell_id.to_lat_lng().lat().degrees
+    lng = current_cell_id.to_lat_lng().lng().degrees
+    alt = 0
+    step_location = (lat, lng, alt)
+
+    return step_location
+
 if __name__ == '__main__':
 
 
@@ -140,8 +149,6 @@ if __name__ == '__main__':
     login_credentials.append({"username": "cheetah90.mpls", "password": "Star2Night", "auth_service": "google"})
     args.accounts = login_credentials
 
-    app.set_current_location(position)
-
     # Control the search status (running or not) across threads
     pause_bit = Event()
     pause_bit.clear()
@@ -161,6 +168,10 @@ if __name__ == '__main__':
         new_location_queue.put(cellid)
     args.remaining_cells = all_cells_id
 
+    if len(args.remaining_cells):
+        app.set_current_location(from_cellid_to_center_location(all_cells_id[0]))
+    else:
+        app.set_current_location(position)
 
     if not args.only_server:
         # Gather the pokemons!
