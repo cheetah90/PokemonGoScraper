@@ -4,6 +4,7 @@
 *.db-*
 *.sass-cache
 *.orig
+*.pickle
 config/config.ini
 static/dist/
 node_modules/

@@ -144,9 +144,9 @@ if __name__ == '__main__':
 
     #login credentials
     login_credentials = []
-    login_credentials.append({"username": "cheetah90.us", "password": "Star2Night", "auth_service": "google" })
-    login_credentials.append({"username": "cheetah90.wuhan", "password": "Star2Night", "auth_service": "google"})
-    login_credentials.append({"username": "cheetah90.mpls", "password": "Star2Night", "auth_service": "google"})
+    login_credentials.append({"username": "cheetah90.apple", "password": "Star2Night", "auth_service": "google" })
+    login_credentials.append({"username": "cheetah90.chicago", "password": "Star2Night", "auth_service": "google"})
+    login_credentials.append({"username": "cheetah90.evanston", "password": "Star2Night", "auth_service": "google"})
     args.accounts = login_credentials
 
     # Control the search status (running or not) across threads
@@ -197,9 +197,5 @@ if __name__ == '__main__':
     config['ROOT_PATH'] = app.root_path
     config['GMAPS_KEY'] = args.gmaps_key
 
-    if args.no_server:
-        # This loop allows for ctrl-c interupts to work since flask won't be holding the program open
-        while search_thread.is_alive():
-            time.sleep(60)
-    else:
-        app.run(threaded=True, use_reloader=False, debug=args.debug, host=args.host, port=args.port)
+    while search_thread.is_alive():
+        time.sleep(60)
